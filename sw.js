@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sparobot-v2';
+const CACHE_NAME = 'sparobot-v3';
 
 // Use relative paths so the app works at any base path (GitHub Pages, custom domain, etc.)
 const ASSETS = [

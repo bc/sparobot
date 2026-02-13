@@ -71,7 +71,7 @@ function renderHome() {
     <div class="screen home-screen">
       <div class="hero">
         <div class="logo">
-          <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="#0ea5e9" stroke-width="3"/><path d="M32 16c-2 8-10 14-10 22a10 10 0 0020 0c0-8-8-14-10-22z" fill="#0ea5e9" opacity="0.3" stroke="#0ea5e9" stroke-width="2"/></svg>
+          <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="#0891B2" stroke-width="3"/><path d="M32 16c-2 8-10 14-10 22a10 10 0 0020 0c0-8-8-14-10-22z" fill="#0891B2" opacity="0.2" stroke="#0891B2" stroke-width="2"/></svg>
         </div>
         <h1>SparoBot</h1>
         <p class="subtitle">Spa & Pool Water Tester</p>
@@ -382,11 +382,23 @@ function renderCorrections() {
       <div class="correction-order">Step ${i + 1}</div>
       <div class="correction-param">${c.parameter}</div>
       <div class="correction-action">${c.action}</div>
+      ${c.reason ? `
+        <div class="correction-reason">
+          <strong>Why this step?</strong>
+          ${c.reason}
+        </div>
+      ` : ''}
       <div class="correction-detail">
         <div class="detail-row"><span>Chemical:</span><span>${c.chemical}</span></div>
         <div class="detail-row"><span>Amount:</span><span class="amount-highlight">${c.amount}</span></div>
         <div class="detail-row"><span>Wait:</span><span>${c.waitMinutes} minutes</span></div>
       </div>
+      ${c.calcBreakdown ? `
+        <div class="calc-breakdown">
+          <strong>How this was calculated</strong>
+          ${c.calcBreakdown.map(line => `<div class="calc-step">${line}</div>`).join('')}
+        </div>
+      ` : ''}
       <div class="correction-notes">${c.notes}</div>
     </div>
   `).join('');
@@ -406,6 +418,11 @@ function renderCorrections() {
         <button class="btn btn-icon" id="btn-speak-corr">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>
         </button>
+      </div>
+
+      <div class="treatment-info">
+        <h3>Why Treatment Order Matters</h3>
+        <p>These steps follow a specific sequence because each chemical parameter affects the ones after it. Alkalinity buffers pH, pH controls sanitizer effectiveness, and sanitizer must be added to balanced water to work at full strength. Skipping ahead wastes chemicals and time.</p>
       </div>
 
       <div class="corrections-list">

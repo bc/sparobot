@@ -4,8 +4,8 @@
   "description": "Photograph your spa test strip to get instant water chemistry readings and treatment recommendations.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0a1628",
-  "theme_color": "#0ea5e9",
+  "background_color": "#F2F4F7",
+  "theme_color": "#0891B2",
   "orientation": "portrait",
   "icons": [
     {
