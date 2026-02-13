@@ -203,23 +203,45 @@ export function calculateCorrections(readings, volumeGallons, sanitizerType = 'c
       });
     } else if (val > p.idealMax) {
       const excess = val - p.idealMax;
-      const amt = excess * 0.1 * scale;
-      corrections.push({
-        order: 1,
-        parameter: 'Total Alkalinity',
-        action: `Lower from ${val} to ~${p.idealMax} ppm`,
-        chemical: 'Sodium Bisulfate (pH Decreaser)',
-        amount: formatAmount(amt, 'oz'),
-        waitMinutes: 20,
-        reason: 'High alkalinity resists pH changes and tends to push pH upward. Lowering TA first prevents fighting against the buffer when adjusting pH in the next step.',
-        calcBreakdown: [
-          `Target: \u2264${p.idealMax} ppm (top of ideal range)`,
-          `Excess: ${excess} ppm over maximum`,
-          `Approximate rate: 0.1 oz per 1 ppm reduction per 10,000 gal`,
-          `Your spa (${volLabel} gal): ${excess} \u00D7 0.1 \u00D7 ${scale.toFixed(4)} = ${amt.toFixed(2)} oz`,
-        ],
-        notes: 'Add pH decreaser. This will also lower pH. Aerate to raise pH back if needed.',
-      });
+      if (excess > 60) {
+        // Very high TA — partial drain is more practical than large amounts of acid
+        const pct = Math.round((1 - p.idealMax / val) * 100);
+        const acidAmt = excess * 0.1 * scale;
+        corrections.push({
+          order: 1,
+          parameter: 'Total Alkalinity',
+          action: `Lower from ${val} to ~${p.idealMax} ppm`,
+          chemical: 'Partial Drain + pH Decreaser',
+          amount: `Drain ~${pct}% and refill, then fine-tune with sodium bisulfate`,
+          waitMinutes: 30,
+          reason: `At ${val} ppm, alkalinity is far over range. Using acid alone would require ${formatAmount(acidAmt, 'oz')} of pH decreaser, which risks crashing your pH. A partial drain brings TA closer to range with less chemical stress on the water.`,
+          calcBreakdown: [
+            `Current: ${val} ppm (maximum: ${p.idealMax} ppm, excess: ${excess} ppm)`,
+            `Chemical-only approach would need: ${formatAmount(acidAmt, 'oz')} sodium bisulfate`,
+            `Recommended: drain ~${pct}% (reduces TA to ~${Math.round(val * (1 - pct / 100))} ppm)`,
+            `Then fine-tune remaining excess with small amount of pH decreaser`,
+          ],
+          notes: 'Drain with pump off. After refill, let water circulate 15 min, then retest TA and pH.',
+        });
+      } else {
+        const amt = excess * 0.1 * scale;
+        corrections.push({
+          order: 1,
+          parameter: 'Total Alkalinity',
+          action: `Lower from ${val} to ~${p.idealMax} ppm`,
+          chemical: 'Sodium Bisulfate (pH Decreaser)',
+          amount: formatAmount(amt, 'oz'),
+          waitMinutes: 20,
+          reason: 'High alkalinity resists pH changes and tends to push pH upward. Lowering TA first prevents fighting against the buffer when adjusting pH in the next step.',
+          calcBreakdown: [
+            `Target: \u2264${p.idealMax} ppm (top of ideal range)`,
+            `Excess: ${excess} ppm over maximum`,
+            `Approximate rate: 0.1 oz per 1 ppm reduction per 10,000 gal`,
+            `Your spa (${volLabel} gal): ${excess} \u00D7 0.1 \u00D7 ${scale.toFixed(4)} = ${amt.toFixed(2)} oz`,
+          ],
+          notes: 'Add pH decreaser. This will also lower pH. Aerate to raise pH back if needed.',
+        });
+      }
     }
   }
 
@@ -351,21 +373,44 @@ export function calculateCorrections(readings, volumeGallons, sanitizerType = 'c
         notes: `Add with pump running. Wait 15 min and retest. Don't enter spa until level is safe.`,
       });
     } else if (val > p.idealMax) {
-      corrections.push({
-        order: 4,
-        parameter: p.name,
-        action: `${p.name} is high at ${val} ppm`,
-        chemical: 'Wait & Aerate',
-        amount: 'Leave cover off, run jets',
-        waitMinutes: 30,
-        reason: `High ${p.name.toLowerCase()} levels dissipate naturally through aeration and UV exposure. No chemical neutralizer is needed \u2014 time and air circulation bring levels down safely.`,
-        calcBreakdown: [
-          `Current: ${val} ppm (maximum safe: ${p.idealMax} ppm)`,
-          `No chemical dosage \u2014 natural dissipation through aeration`,
-          `Running jets with cover off accelerates the process`,
-        ],
-        notes: `Do not use spa until ${p.name.toLowerCase()} drops below ${p.idealMax} ppm.`,
-      });
+      const excess = val - p.idealMax;
+      const isExtreme = (sanitizerType === 'bromine' && val >= 15) || (sanitizerType !== 'bromine' && val >= 8);
+      if (isExtreme) {
+        // Very high sanitizer — drain to bring it down faster
+        const pct = Math.round((1 - p.idealMax / val) * 100);
+        corrections.push({
+          order: 4,
+          parameter: p.name,
+          action: `${p.name} dangerously high at ${val} ppm`,
+          chemical: 'Partial Drain + Aerate',
+          amount: `Drain ~${pct}% and refill, then run jets with cover off`,
+          waitMinutes: 30,
+          reason: `At ${val} ppm, ${p.name.toLowerCase()} is far above the safe maximum of ${p.idealMax} ppm. Waiting for natural dissipation could take hours. Draining ~${pct}% immediately dilutes the concentration, then aeration handles the rest.`,
+          calcBreakdown: [
+            `Current: ${val} ppm (safe max: ${p.idealMax} ppm, excess: ${excess} ppm)`,
+            `Drain ~${pct}% to reduce to ~${Math.round(val * (1 - pct / 100))} ppm`,
+            `Formula: 1 \u2212 (${p.idealMax} \u00F7 ${val}) = ~${pct}%`,
+            `After refill, aerate with jets to dissipate remaining excess`,
+          ],
+          notes: `Do not use spa until ${p.name.toLowerCase()} drops below ${p.idealMax} ppm. Test again after 15 minutes.`,
+        });
+      } else {
+        corrections.push({
+          order: 4,
+          parameter: p.name,
+          action: `${p.name} is high at ${val} ppm`,
+          chemical: 'Wait & Aerate',
+          amount: 'Leave cover off, run jets',
+          waitMinutes: 30,
+          reason: `High ${p.name.toLowerCase()} levels dissipate naturally through aeration and UV exposure. No chemical neutralizer is needed \u2014 time and air circulation bring levels down safely.`,
+          calcBreakdown: [
+            `Current: ${val} ppm (maximum safe: ${p.idealMax} ppm)`,
+            `No chemical dosage \u2014 natural dissipation through aeration`,
+            `Running jets with cover off accelerates the process`,
+          ],
+          notes: `Do not use spa until ${p.name.toLowerCase()} drops below ${p.idealMax} ppm.`,
+        });
+      }
     }
   }
 
@@ -414,6 +459,31 @@ export function calculateCorrections(readings, volumeGallons, sanitizerType = 'c
         notes: 'High CYA reduces sanitizer effectiveness. Dilution is the only fix.',
       });
     }
+  }
+
+  // ── Overall assessment: recommend partial drain when water is very off ──
+  // When 3+ parameters need correction, a partial drain-and-refill is often
+  // simpler and more effective than dosing many chemicals sequentially.
+  if (corrections.length >= 3) {
+    const drainAlreadySuggested = corrections.some(c =>
+      c.chemical.includes('Partial') || c.chemical.includes('Drain'));
+    const suggestedPct = drainAlreadySuggested ? 20 : 30;
+    corrections.unshift({
+      order: 0,
+      parameter: 'Water Refresh',
+      action: 'Consider a partial drain and refill first',
+      chemical: 'Fresh Water',
+      amount: `Drain ~${suggestedPct}% and refill`,
+      waitMinutes: 45,
+      reason: `With ${corrections.length} parameters needing correction, a partial water change is often the fastest path to balanced water. Fresh water dilutes all problem values simultaneously \u2014 you may eliminate 1\u20132 corrections entirely and reduce the chemical amounts for the rest.`,
+      calcBreakdown: [
+        `${corrections.length} corrections currently needed`,
+        `A ${suggestedPct}% drain reduces all dissolved levels by ~${suggestedPct}%`,
+        `After refill, retest all parameters before adding chemicals`,
+        `This often simplifies the remaining treatment to 1\u20132 steps`,
+      ],
+      notes: 'Optional but recommended. Drain with pump off. After refill, circulate 15 min at temperature, then retest everything.',
+    });
   }
 
   return corrections.sort((a, b) => a.order - b.order);
