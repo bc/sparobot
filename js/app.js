@@ -495,7 +495,7 @@ function renderSettings() {
           <label for="volume-input">Water Volume</label>
           <div class="input-row">
             <input type="number" id="volume-input" value="${state.volume || ''}"
-              placeholder="e.g. 400" inputmode="decimal" min="1" step="1">
+              placeholder="e.g. 400" inputmode="numeric" pattern="[0-9]*" min="1" step="1">
             <select id="volume-unit">
               <option value="gallons" ${state.volumeUnit === 'gallons' ? 'selected' : ''}>Gallons</option>
               <option value="liters" ${state.volumeUnit === 'liters' ? 'selected' : ''}>Liters</option>
@@ -505,11 +505,11 @@ function renderSettings() {
         </div>
 
         <div class="field">
-          <label for="sanitizer-select">Sanitizer Type</label>
-          <select id="sanitizer-select">
-            <option value="chlorine" ${state.sanitizerType === 'chlorine' ? 'selected' : ''}>Chlorine</option>
-            <option value="bromine" ${state.sanitizerType === 'bromine' ? 'selected' : ''}>Bromine</option>
-          </select>
+          <label>Sanitizer Type</label>
+          <div class="toggle-group" id="sanitizer-toggle">
+            <button type="button" class="toggle-option ${state.sanitizerType === 'chlorine' ? 'active' : ''}" data-value="chlorine">Chlorine</button>
+            <button type="button" class="toggle-option ${state.sanitizerType === 'bromine' ? 'active' : ''}" data-value="bromine">Bromine</button>
+          </div>
         </div>
       </div>
 
@@ -526,6 +526,13 @@ function renderSettings() {
       ` : ''}
     </div>
   `;
+
+  document.querySelectorAll('#sanitizer-toggle .toggle-option').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#sanitizer-toggle .toggle-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
 
   if (!isFirstTime) {
     document.getElementById('btn-back-settings').onclick = () => { state.screen = 'home'; render(); };
@@ -552,7 +559,7 @@ function renderSettings() {
     }
     state.volume = vol;
     state.volumeUnit = document.getElementById('volume-unit').value;
-    state.sanitizerType = document.getElementById('sanitizer-select').value;
+    state.sanitizerType = document.querySelector('#sanitizer-toggle .toggle-option.active')?.dataset.value || 'chlorine';
     saveSettings();
     state.screen = 'home';
     render();

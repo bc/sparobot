@@ -632,12 +632,40 @@ html, body {
   line-height: 1.4;
 }
 
+.toggle-group {
+  display: flex;
+  background: var(--bg-inset);
+  border-radius: var(--radius-xs);
+  padding: 3px;
+}
+
+.toggle-option {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.toggle-option.active {
+  background: var(--bg-card);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
 .input-row {
   display: flex;
   gap: 10px;
 }
 
-.input-row input { flex: 1; }
+.input-row input { flex: 2; min-width: 0; }
+.input-row select { flex: 0 0 120px; width: auto; }
 
 input[type="number"], select {
   background: var(--bg-inset);
