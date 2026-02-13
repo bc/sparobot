@@ -2,7 +2,7 @@
   "name": "SparoBot - Spa Water Tester",
   "short_name": "SparoBot",
   "description": "Photograph your spa test strip to get instant water chemistry readings and treatment recommendations.",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#0a1628",
   "theme_color": "#0ea5e9",

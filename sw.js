@@ -1,16 +1,18 @@
-const CACHE_NAME = 'sparobot-v1';
+const CACHE_NAME = 'sparobot-v2';
+
+// Use relative paths so the app works at any base path (GitHub Pages, custom domain, etc.)
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/chemistry.js',
-  '/js/colorChart.js',
-  '/js/speech.js',
-  '/js/calendar.js',
-  '/manifest.json',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg',
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/chemistry.js',
+  './js/colorChart.js',
+  './js/speech.js',
+  './js/calendar.js',
+  './manifest.json',
+  './icons/icon-192.svg',
+  './icons/icon-512.svg',
 ];
 
 // Install: cache all assets
@@ -46,7 +48,7 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => {
       // Offline fallback
       if (event.request.destination === 'document') {
-        return caches.match('/index.html');
+        return caches.match('./index.html');
       }
     })
   );
